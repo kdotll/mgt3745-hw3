@@ -1,27 +1,56 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Meeting notes | MGT 3745 starter</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Candidate Operational Knockout Gate</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="app.js" defer></script>
 </head>
 <body>
   <main>
-    <h1>Meeting notes</h1>
-    <p>Keep short notes in this browser. Use fictional, non-sensitive information.</p>
-    <form id="note-form" novalidate>
-      <label for="note-input">New note</label>
-      <p id="note-help">Enter 1–200 characters. Notes stay in this browser profile and site only.</p>
-      <input id="note-input" name="note" type="text" aria-describedby="note-help note-error" autocomplete="off">
-      <button type="submit">Save note</button>
-      <p id="note-error" role="alert"></p>
+    <h1>Operational Knockout Gate</h1>
+    <p>Deterministic candidate intake and eligibility triage (Feature F-02).</p>
+    
+    <form id="candidate-form" novalidate>
+      <label for="candidate-name">Candidate Name</label>
+      <input id="candidate-name" name="candidateName" type="text" autocomplete="off" required>
+
+      <label for="degree-program">Degree Program</label>
+      <select id="degree-program" name="degreeProgram" required>
+        <option value="">Select Degree...</option>
+        <option value="Mechanical Engineering">Mechanical Engineering</option>
+        <option value="Electrical Engineering">Electrical Engineering</option>
+        <option value="Computer Science">Computer Science</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="grad-year">Graduation Year</label>
+      <input id="grad-year" name="gradYear" type="number" min="2024" max="2032" placeholder="e.g. 2027" required>
+
+      <label for="work-auth">U.S. Work Authorization</label>
+      <select id="work-auth" name="workAuth" required>
+        <option value="">Select Status...</option>
+        <option value="Yes">Authorized (Citizen / Permanent Resident)</option>
+        <option value="No">Requires Visa Sponsorship</option>
+      </select>
+
+      <label for="relocation">Willing to Relocate?</label>
+      <select id="relocation" name="relocation" required>
+        <option value="">Select Readiness...</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+
+      <button type="submit">Evaluate & Save Candidate</button>
+      <p id="form-error" role="alert" style="color: #922020; margin-top: 0.5rem;"></p>
     </form>
-    <p id="save-status" role="status" aria-live="polite"></p>
-    <h2>Saved notes</h2>
-    <p id="empty-state">No saved notes yet.</p>
-    <ul id="note-list" aria-label="Saved notes"></ul>
+
+    <p id="save-status" role="status" aria-live="polite" style="margin-top: 1rem; font-weight: bold;"></p>
+
+    <h2>Evaluated Applicants</h2>
+    <p id="empty-state">No candidate evaluations on record.</p>
+    <ul id="candidate-list" aria-label="Evaluated candidates" style="padding: 0; list-style: none;"></ul>
   </main>
+  <script src="app.js"></script>
 </body>
 </html>

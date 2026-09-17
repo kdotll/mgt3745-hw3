@@ -1,90 +1,119 @@
 (() => {
   'use strict';
 
-  const storageKey = 'mgt3745.notes.v617';
-  const noteForm = document.querySelector('#note-form');
-  const noteInput = document.querySelector('#note-input');
-  const noteList = document.querySelector('#note-list');
-  const noteError = document.querySelector('#note-error');
+  const storageKey = 'mgt3745.candidates.v1';
+
+  const form = document.querySelector('#candidate-form');
+  const nameInput = document.querySelector('#candidate-name');
+  const degreeInput = document.querySelector('#degree-program');
+  const gradInput = document.querySelector('#grad-year');
+  const authInput = document.querySelector('#work-auth');
+  const reloInput = document.querySelector('#relocation');
+  
+  const candidateList = document.querySelector('#candidate-list');
+  const formError = document.querySelector('#form-error');
   const saveStatus = document.querySelector('#save-status');
   const emptyState = document.querySelector('#empty-state');
-  // The query switch enables a repeatable classroom failure without filling real storage.
-  const simulateFailedSave = new URLSearchParams(window.location.search).has('failSave');
-  let notes = loadNotes();
 
-  function loadNotes() {
+  let candidates = loadCandidates();
+  renderCandidates();
+
+  function loadCandidates() {
     try {
       const storedText = window.localStorage.getItem(storageKey);
       const parsed = storedText === null ? [] : JSON.parse(storedText);
-      if (!Array.isArray(parsed) || parsed.some(note => typeof note !== 'string')) {
-        throw new Error('Unexpected stored data');
+      if (!Array.isArray(parsed)) {
+        throw new Error('Unexpected stored data format');
       }
       return parsed;
-    } catch {
-      saveStatus.textContent = 'Saved notes could not be read. Original storage was left unchanged. A successful new save will replace it.';
+    } catch (err) {
+      saveStatus.textContent = 'Saved records could not be read. Storage was left unchanged.';
       return [];
     }
   }
 
-  function saveNotes(nextNotes) {
+  function saveCandidates(nextCandidates) {
     try {
-      if (simulateFailedSave) throw new Error('Simulated write failure');
-      // Persist the proposed state before changing the visible state or clearing input.
-      window.localStorage.setItem(storageKey, JSON.stringify(nextNotes));
+      window.localStorage.setItem(storageKey, JSON.stringify(nextCandidates));
       return true;
-    } catch {
-      noteError.textContent = 'Could not save. Your text is still here. Try again when storage is available.';
+    } catch (err) {
+      formError.textContent = 'Could not save record. Storage is full or unavailable.';
       saveStatus.textContent = '';
       return false;
     }
   }
 
-  function renderNotes() {
-    noteList.replaceChildren();
-    emptyState.hidden = notes.length > 0;
-    notes.forEach((note, index) => {
+  function renderCandidates() {
+    candidateList.replaceChildren();
+    emptyState.hidden = candidates.length > 0;
+
+    candidates.forEach((candidate, index) => {
       const listItem = document.createElement('li');
-      const noteText = document.createElement('span');
-      noteText.textContent = note;
+      
+      const textSpan = document.createElement('span');
+      textSpan.textContent = `${candidate.name} (${candidate.degree}, Grad: ${candidate.gradYear}) — `;
+      
+      const badge = document.createElement('span');
+      badge.textContent = candidate.status;
+      badge.className = candidate.status === 'Eligible' ? 'badge-eligible' : 'badge-ineligible';
+      textSpan.append(badge);
+
       const deleteButton = document.createElement('button');
       deleteButton.type = 'button';
-      deleteButton.textContent = 'Delete';
-      deleteButton.setAttribute('aria-label', `Delete note ${index + 1}: ${note}`);
+      deleteButton.textContent = 'Remove';
+      deleteButton.setAttribute('aria-label', `Remove ${candidate.name}`);
       deleteButton.addEventListener('click', () => {
-        const nextNotes = notes.filter((entry, entryIndex) => entryIndex !== index);
-        if (!saveNotes(nextNotes)) return;
-        notes = nextNotes;
-        noteError.textContent = '';
-        renderNotes();
-        saveStatus.textContent = 'Note deleted.';
-        noteInput.focus();
+        const nextCandidates = candidates.filter((_, entryIndex) => entryIndex !== index);
+        if (!saveCandidates(nextCandidates)) return;
+        candidates = nextCandidates;
+        formError.textContent = '';
+        renderCandidates();
+        saveStatus.textContent = 'Candidate record removed.';
       });
-      listItem.append(noteText, deleteButton);
-      noteList.append(listItem);
+
+      listItem.append(textSpan, deleteButton);
+      candidateList.append(listItem);
     });
   }
 
-  noteForm.addEventListener('submit', event => {
+  form.addEventListener('submit', event => {
     event.preventDefault();
-    const candidate = noteInput.value.trim();
-    const characterCount = Array.from(candidate).length;
-    if (characterCount < 1 || characterCount > 200) {
-      noteError.textContent = 'Enter a note containing 1–200 characters.';
-      noteInput.setAttribute('aria-invalid', 'true');
-      saveStatus.textContent = '';
-      noteInput.focus();
+
+    const name = nameInput.value.trim();
+    const degree = degreeInput.value;
+    const gradYear = parseInt(gradInput.value, 10);
+    const workAuth = authInput.value;
+    const relocation = reloInput.value;
+
+    if (!name || !degree || isNaN(gradYear) || !workAuth || !relocation) {
+      formError.textContent = 'Please fill out all required fields properly.';
       return;
     }
-    noteInput.removeAttribute('aria-invalid');
-    noteError.textContent = '';
-    const nextNotes = [...notes, candidate];
-    if (!saveNotes(nextNotes)) return;
-    notes = nextNotes;
-    renderNotes();
-    noteInput.value = '';
-    noteInput.focus();
-    saveStatus.textContent = 'Note saved in this browser.';
-  });
 
-  renderNotes();
+    formError.textContent = '';
+
+    // Deterministic four-field knockout evaluation (Task Rule 3)
+    const isEligible = 
+      degree === 'Mechanical Engineering' &&
+      gradYear >= 2026 &&
+      gradYear <= 2028 &&
+      workAuth === 'Yes' &&
+      relocation === 'Yes';
+
+    const newCandidate = {
+      name: name,
+      degree: degree,
+      gradYear: gradYear,
+      status: isEligible ? 'Eligible' : 'Ineligible'
+    };
+
+    const nextCandidates = [...candidates, newCandidate];
+    if (!saveCandidates(nextCandidates)) return;
+
+    candidates = nextCandidates;
+    renderCandidates();
+    form.reset();
+    nameInput.focus();
+    saveStatus.textContent = `Candidate evaluated and saved as ${newCandidate.status}.`;
+  });
 })();
