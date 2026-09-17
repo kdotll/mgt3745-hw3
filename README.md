@@ -39,7 +39,7 @@ flowchart TD
     K -- Yes --> M[Update in-memory candidate list]
     M --> N[renderCandidates: redraw list with status badge]
     N --> O[Clear form inputs and announce saved status]
-
+```
 This diagram describes the starter's load-and-add flow. Update it to match your implementation. In `app.js`, `loadNotes` reads stored data, `saveNotes` attempts to persist a proposed state, and `renderNotes` draws the current state using `textContent` for user text. The submit handler validates input and updates the visible state only after a successful save. Delete also saves the proposed state before redrawing. A read failure shows a warning and starts with an empty in-memory list; it leaves the original storage unchanged until a successful new save replaces it.
 
 ## Status
